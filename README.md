@@ -1,7 +1,6 @@
-# MTG Collection Manager
+# MtG Rusty Collection Manager (MtG RCM)
 
 ## Table of Contents
-
 
 1. [About The Project](#about-the-project)
 2. [Architecture](#architecture)
@@ -11,7 +10,6 @@
     - [Prerequisites](#prerequisites)
     - [Setting up PostgreSQL](#setting-up-postgresql-server)
     - [Installation](#installation)
-
 
 ## About The Project
 

@@ -11,6 +11,13 @@ services:
             - POSTGRES_PASSWORD=password
             - POSTGRES_DB=mtg_lounge
 
+    mongo-database:
+        image: mongo
+        restart: always
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=root
+            - MONGO_INITDB_ROOT_PASSWORD=password
+
     j-server:
         image: maven:3.9.9-amazoncorretto-17-debian
         depends_on:

@@ -5,18 +5,27 @@ use axum::{
     routing::get,
     Json, RequestPartsExt, Router,
 };
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
+use reqwest::{Error, header::USER_AGENT};
 use std::collections::HashMap;
 
 #[derive(Serialize)]
-struct Cards {
+struct Card {
     data: &'static str,
+}
+
+#[derive(Serialize)]
+struct ScryfallResponse {
+    object: &'static str,
+    total_cards: &'static str,
+    has_more: &'static str,
+    next_page: &'static str,
 }
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route("/", get(hello))
+        .route("/site/api/{version}/setup", get(setup_db))
         .route("/site/api/{version}/cards", get(get_cards));
 
     let app = app.fallback(api_404);
@@ -25,16 +34,24 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn hello() -> (StatusCode, Json<Cards>) {
-    let response = Cards {
-        data: "Hello, world!",
-    };
+/// setup the mongodb with a call to the scryfall api
+///
+/// Currently does not strip out any data and downloads all the images for the cards
+async fn setup_db() -> Result<(StatusCode, Json<ScryfallResponse>), Error> {
+    let current_url = String::from("https://api.scryfall.com/cards/search?q=game%3Apaper");
+    let client = reqwest::Client::new();
+    let response = client.get(current_url)
+        // .header(USER_AGENT, "MtG RCM")
+        .send()
+        .await?;
+    let cards: ScryfallResponse = response.json().await?;
 
-    (StatusCode::OK, Json(response))
+    Ok((StatusCode::OK, Json(cards)))
 }
 
-async fn get_cards() -> (StatusCode, Json<Cards>) {
-    let response = Cards {
+/// Returns the data on the first 100 cards in the mongodb database
+async fn get_cards() -> (StatusCode, Json<Card>) {
+    let response = Card {
         data: "Hello, world!",
     };
 
