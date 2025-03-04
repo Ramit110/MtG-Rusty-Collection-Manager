@@ -5,28 +5,36 @@ use axum::{
     routing::get,
     Json, RequestPartsExt, Router,
 };
+use reqwest::header::{ACCEPT, USER_AGENT};
 use serde::{Serialize, Deserialize};
-use reqwest::{Error, header::USER_AGENT};
 use std::collections::HashMap;
 
-#[derive(Serialize)]
-struct Card {
-    data: &'static str,
+#[derive(Deserialize, Serialize)]
+struct ScryfallBulkData {
+    object: String,
+    id: String,
+    uri: String,
+    r#type: String,
+    name: String,
+    description: String,
+    download_uri: String,
+    updated_at: String,
+    size: u128,
+    content_type: String,
+    content_encoding: String,
 }
 
-#[derive(Serialize)]
-struct ScryfallResponse {
-    object: &'static str,
-    total_cards: &'static str,
-    has_more: &'static str,
-    next_page: &'static str,
+#[derive(Deserialize, Serialize)]
+struct ScryfallBulkDataResponse {
+    object: String,
+    has_more: bool,
+    data: Vec<ScryfallBulkData>,
 }
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route("/site/api/{version}/setup", get(setup_db))
-        .route("/site/api/{version}/cards", get(get_cards));
+        .route("/site/api/{version}/setup", get(setup_db));
 
     let app = app.fallback(api_404);
 
@@ -37,23 +45,16 @@ async fn main() {
 /// setup the mongodb with a call to the scryfall api
 ///
 /// Currently does not strip out any data and downloads all the images for the cards
-async fn setup_db() -> Result<(StatusCode, Json<ScryfallResponse>), Error> {
-    let current_url = String::from("https://api.scryfall.com/cards/search?q=game%3Apaper");
+async fn setup_db() -> (StatusCode, Json<ScryfallBulkDataResponse>) {
+    let current_url = String::from("https://api.scryfall.com/bulk-data");
     let client = reqwest::Client::new();
-    let response = client.get(current_url)
-        // .header(USER_AGENT, "MtG RCM")
+    let response: ScryfallBulkDataRhttps://edition.cnn.com/2025/03/02/europe/ukraine-russia-zelensky-starmer-summit-intl/index.htmlesponse = client.get(current_url)
+        .header(USER_AGENT, "MtG RCM")
+        .header(ACCEPT, "application/json")
         .send()
-        .await?;
-    let cards: ScryfallResponse = response.json().await?;
-
-    Ok((StatusCode::OK, Json(cards)))
-}
-
-/// Returns the data on the first 100 cards in the mongodb database
-async fn get_cards() -> (StatusCode, Json<Card>) {
-    let response = Card {
-        data: "Hello, world!",
-    };
+        .await.expect("API Error")
+        .json::<ScryfallBulkDataResponse>()
+        .await.expect("JSON Error");
 
     (StatusCode::OK, Json(response))
 }
