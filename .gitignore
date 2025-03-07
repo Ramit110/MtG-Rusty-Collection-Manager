@@ -40,3 +40,4 @@ j-server/!**/src/test/**/build/
 
 ### Cargo things
 backend/target/
+scryfall-cache/target/

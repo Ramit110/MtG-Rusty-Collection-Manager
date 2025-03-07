@@ -48,7 +48,7 @@ async fn main() {
 async fn setup_db() -> (StatusCode, Json<ScryfallBulkDataResponse>) {
     let current_url = String::from("https://api.scryfall.com/bulk-data");
     let client = reqwest::Client::new();
-    let response: ScryfallBulkDataRhttps://edition.cnn.com/2025/03/02/europe/ukraine-russia-zelensky-starmer-summit-intl/index.htmlesponse = client.get(current_url)
+    let response: ScryfallBulkDataResponse = client.get(current_url)
         .header(USER_AGENT, "MtG RCM")
         .header(ACCEPT, "application/json")
         .send()
