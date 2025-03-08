@@ -12,11 +12,8 @@ services:
             - POSTGRES_DB=mtg_lounge
 
     mongo-database:
-        image: mongo
+        build: ./../scryfall-cache
         restart: always
-        environment:
-            - MONGO_INITDB_ROOT_USERNAME=root
-            - MONGO_INITDB_ROOT_PASSWORD=password
 
     sccryfall-cache:
         image: mongo
@@ -45,10 +42,10 @@ services:
         networks:
             - mtg-lounge
         volumes:
-            - ./../backend:/usr/src/backend
+            - ./../backend:/usr/src
         command: >
             sh -c "
-                cd /usr/src/backend
+                cd /usr/src
                 cargo install --path .
                 cargo build --locked --release
                 cp target/release/mtg_lounge_collections /bin/server
