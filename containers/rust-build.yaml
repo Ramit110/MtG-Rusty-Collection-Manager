@@ -1,0 +1,22 @@
+services:
+    sccryfall-cache-build:
+        image: rust:1.84
+        volumes:
+            - ./../scryfall-cache:/usr/src
+        command: >
+            sh -c "
+                cd /usr/src
+                cargo install --path .
+                cargo build --release
+            "
+
+    rs-server-build:
+        image: rust:1.84
+        volumes:
+            - ./../backend:/usr/src
+        command: >
+            sh -c "
+                cd /usr/src
+                cargo install --path .
+                cargo build --release
+            "
