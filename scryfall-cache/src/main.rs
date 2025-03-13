@@ -33,13 +33,13 @@ struct ScryfallBulkDataResponse {
 
 #[tokio::main]
 async fn main() {
-    let scryfall_data = bulk_files()
+    let scryfall_data = bulk_files();
 }
 
 /// setup the mongodb with a call to the scryfall api
 ///
 /// Currently does not strip out any data and downloads all the images for the cards
-async fn setup_db() -> Json<ScryfallBulkDataResponse> {
+async fn bulk_files() -> Json<ScryfallBulkDataResponse> {
     let current_url = String::from("https://api.scryfall.com/bulk-data");
     let client = reqwest::Client::new();
     let response: ScryfallBulkDataResponse = client.get(current_url)
