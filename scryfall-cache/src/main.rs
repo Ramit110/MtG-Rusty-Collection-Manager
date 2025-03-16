@@ -63,7 +63,14 @@ impl Iterator for PartialRangeIter {
 #[tokio::main]
 async fn main() {
     println!("Getting Data from Scryfall!");
-    let scryfall_data = bulk_files();
+    let client = reqwest::Client::new();
+    let scryfall_data = client.get(String::from("https://api.scryfall.com/bulk-data"))
+        .header(USER_AGENT, "Scryfall Cacher")
+        .header(ACCEPT, "application/json")
+        .send()
+        .await.expect("API Error")
+        .json::<ScryfallBulkDataResponse>()
+        .await.expect("JSON Error");
     println!("Got data from Scryfall!");
 
     println!("Creating initial folder!");
@@ -105,19 +112,3 @@ fn download_file(data: ScryfallBulkData) -> Result<bool, Box<dyn Error>> {
     */
     Ok(true)
 } 
-
-/// setup the mongodb with a call to the scryfall api
-///
-/// Currently does not strip out any data and downloads all the images for the cards
-async fn bulk_files() -> Result<ScryfallBulkDataResponse, Box<dyn Error>> {
-    let client = reqwest::Client::new();
-    let response = client.get(String::from("https://api.scryfall.com/bulk-data"))
-        .header(USER_AGENT, "Scryfall Cacher")
-        .header(ACCEPT, "application/json")
-        .send()
-        .await.expect("API Error")
-        .json::<ScryfallBulkDataResponse>()
-        .await.expect("JSON Error");
-
-    Ok(response)
-}

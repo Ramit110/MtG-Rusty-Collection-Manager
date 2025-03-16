@@ -1,5 +1,5 @@
 services:
-    sccryfall-cache-build:
+    scryfall-cache-build:
         image: rust:1.84
         volumes:
             - ./../scryfall-cache:/usr/src
@@ -7,6 +7,7 @@ services:
             sh -c "
                 cd /usr/src
                 cargo install --path .
+                cargo fmt
                 cargo build --release
             "
 
@@ -18,5 +19,6 @@ services:
             sh -c "
                 cd /usr/src
                 cargo install --path .
+                cargo fmt
                 cargo build --release
             "

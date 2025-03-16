@@ -10,7 +10,8 @@ EOF
 
 # run the rust
 FROM debian AS executor
-RUN apt-get update &&  apt-get upgrade -y
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get -y install libssl3 ca-certificates
 WORKDIR /scryfall-cache
 COPY --from=compiler /usr/src/scryfall-cache/target/release /scryfall-cache
 RUN ./scryfall-cache
@@ -22,5 +23,5 @@ ENV MONGO_INITDB_ROOT_PASSWORD=password
 RUN apt-get update && apt-get upgrade -y
 WORKDIR /initial
 COPY --from=executor /initial /initial
-RUN find rb-script -name '*.json' -type f -exec mongoimport --db scryfall --file "{}" --batchSize 1 \
+RUN find . -name '*.json' -type f -exec mongoimport --db scryfall --file "{}" --batchSize 1
 CMD ["mongod"]
