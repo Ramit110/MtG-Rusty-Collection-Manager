@@ -58,18 +58,18 @@ async fn main() {
 }
 
 async fn download_file(dataset: ScryfallBulkData) -> Result<&'static str, &'static str> {
-    println!("Working on: {0}!", dataset.download_uri);
+    println!("starting download of: {0}", dataset.r#type);
     let client = reqwest::Client::new();
     let mut output_file = File::create(format!("/initial/{0}.json", dataset.r#type).as_str())
         .expect(format!("Error making file for {0}!", dataset.r#type).as_str());
 
-    println!("starting download of: {0}", dataset.r#type);
     let scryfall_data = client.get(&dataset.download_uri)
         .send().await.expect("Error API call failed")
         .text().await.expect("File Error");
+
     output_file.write(scryfall_data.as_bytes())
         .expect(format!("Error writing to file {0}!", dataset.r#type).as_str());
-    println!("Finished Downloading: {0}", dataset.r#type);
 
+    println!("Finished Downloading: {0}", dataset.r#type);
     Ok("Success!")
 } 
