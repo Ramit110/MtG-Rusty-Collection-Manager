@@ -23,5 +23,5 @@ ENV MONGO_INITDB_ROOT_PASSWORD=password
 RUN apt-get update && apt-get upgrade -y
 WORKDIR /initial
 COPY --from=executor /initial /initial
-RUN find . -name '*.json' -type f -exec mongoimport --db scryfall --file "{}" --batchSize 1
+RUN find . -name '*.json' -type f -exec mongoimport --db scryfall --file '{}' \;
 CMD ["mongod"]

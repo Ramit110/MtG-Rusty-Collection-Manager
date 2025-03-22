@@ -1,9 +1,7 @@
-use reqwest::header::{ACCEPT, CONTENT_LENGTH, RANGE, USER_AGENT, HeaderValue};
-use reqwest::StatusCode;
+use reqwest::header::{ACCEPT, USER_AGENT};
 use serde::{Serialize, Deserialize};
-use std::error::Error;
 use std::fs::{File, create_dir};
-use std::thread;
+use std::io::Write;
 
 #[derive(Deserialize, Serialize)]
 struct ScryfallBulkData {
@@ -27,39 +25,6 @@ struct ScryfallBulkDataResponse {
     data: Vec<ScryfallBulkData>,
 }
 
-struct PartialRangeIter {
-    start: u64,
-    end: u64,
-    buffer_size: u32,
-}
-
-impl PartialRangeIter {
-    pub fn new(start: u64, end: u64, buffer_size: u32) -> Result<Self, &'static str> {
-        if buffer_size == 0 {
-            return Err("invalid buffer_size, give a value greater than zero")
-        }
-        if start > end {
-            return Err("invalid start and end, start is greater than end.")
-        }
-        Ok(PartialRangeIter { start, end, buffer_size, })
-    }
-}
-
-impl Iterator for PartialRangeIter {
-    type Item = HeaderValue;
-    fn next(&mut self) -> Option<Self::Item> {
-      if self.start > self.end {
-        None
-      } else {
-        let prev_start = self.start;
-        self.start += std::cmp::min(self.buffer_size as u64, self.end - self.start + 1);
-        Some(HeaderValue::from_str(&format!("bytes={}-{}", prev_start, self.start - 1))
-            .expect("string provided by format!"))
-      }
-    }
-  }
-  
-
 #[tokio::main]
 async fn main() {
     println!("Getting Data from Scryfall!");
@@ -78,37 +43,33 @@ async fn main() {
     println!("Created initial folder!");
 
     println!("Getting the JSON files!");
-
+    let mut handles = vec![];
+    for dataset in scryfall_data.data {
+        let handle = tokio::spawn(async {
+            let result = download_file(dataset).await;
+            result
+        });
+        handles.push(handle);
+    }
+    for handle in handles {
+        let _ = handle.await.unwrap();
+    }
+    println!("Got the JSON files!");
 }
 
-fn download_file(data: ScryfallBulkData) -> Result<bool, Box<dyn Error>> {
-    /*
-    const CHUNK_SIZE: u128 = data.size.overflowing_div(50).0;
-    let client = reqwest::blocking::Client::new();
-    let response = client.head(data.uri).send()?;
-    let length = response.headers()
-        .get(CONTENT_LENGTH)
-        .ok_or("response doesn't include the content length")?;
-    let length = u64::from_str(length.to_str()?).map_err(|_| "invalid Content-Length header")?;
-      
-    let mut output_file = File::create("/initial/")?;
-      
-    println!("starting download of:");
-    for range in PartialRangeIter::new(0, length - 1, CHUNK_SIZE)? {
-        println!("range {:?}", range);
-        let mut response = client.get(url).header(RANGE, range).send()?;
-      
-        let status = response.status();
-        if !(status == StatusCode::OK || status == StatusCode::PARTIAL_CONTENT) {
-            error_chain::bail!("Unexpected server response: {}", status)
-        }
-        std::io::copy(&mut response, &mut output_file)?;
-    }
-      
-    let content = response.text()?;
-    std::io::copy(&mut content.as_bytes(), &mut output_file)?;
+async fn download_file(dataset: ScryfallBulkData) -> Result<&'static str, &'static str> {
+    println!("Working on: {0}!", dataset.download_uri);
+    let client = reqwest::Client::new();
+    let mut output_file = File::create(format!("/initial/{0}.json", dataset.r#type).as_str())
+        .expect(format!("Error making file for {0}!", dataset.r#type).as_str());
 
-    println!("Success! Finished Downloading:");
-    */
-    Ok(true)
+    println!("starting download of: {0}", dataset.r#type);
+    let scryfall_data = client.get(&dataset.download_uri)
+        .send().await.expect("Error API call failed")
+        .text().await.expect("File Error");
+    output_file.write(scryfall_data.as_bytes())
+        .expect(format!("Error writing to file {0}!", dataset.r#type).as_str());
+    println!("Finished Downloading: {0}", dataset.r#type);
+
+    Ok("Success!")
 } 
