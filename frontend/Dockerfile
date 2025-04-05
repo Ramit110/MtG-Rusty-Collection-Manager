@@ -8,4 +8,4 @@ RUN chmod +x elm
 RUN sudo mv elm /usr/local/bin/
 
 WORKDIR /usr/src
-CMD ...
+CMD [""]
