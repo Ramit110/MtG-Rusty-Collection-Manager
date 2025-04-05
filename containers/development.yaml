@@ -26,7 +26,7 @@ services:
         networks:
             - mtg-lounge
 
-    rs-server:
+    rs-backend:
         image: rust:1.84
         depends_on:
             - scryfall-cache

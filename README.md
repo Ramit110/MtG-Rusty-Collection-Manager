@@ -70,6 +70,6 @@ Rust:
 
 1. Use ``docker compose -f development.yaml build && docker compose -f development.yaml up``
 
-2. Connect to http://localhost:5173/
+2. Connect to http://localhost:8080/site/home
 
 3. Use the application!
