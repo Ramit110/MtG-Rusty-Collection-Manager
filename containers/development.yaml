@@ -1,4 +1,10 @@
 services:
+    scryfall-cache:
+        build: ./../scryfall-cache
+        restart: always
+        networks:
+            - mtg-lounge
+
     pg-database:
         image: postgres
         restart: always
@@ -11,34 +17,21 @@ services:
             - POSTGRES_PASSWORD=password
             - POSTGRES_DB=mtg_lounge
 
-    scryfall-cache:
-        build: ./../scryfall-cache
-        restart: always
-
     mongo-database:
         image: mongo
         restart: always
         environment:
             - MONGO_INITDB_ROOT_USERNAME=root
             - MONGO_INITDB_ROOT_PASSWORD=password
-
-    j-server:
-        image: maven:3.9.9-amazoncorretto-17-debian
-        depends_on:
-            - pg-database
-        volumes:
-            - ./../j-server:/root/.m2/repository
         networks:
             - mtg-lounge
-        command: >
-            sh -c "
-                cd /root/.m2/repository
-                mvn spring-boot:run
-            "
+
     rs-server:
         image: rust:1.84
         depends_on:
+            - scryfall-cache
             - pg-database
+            - mongo-database
         networks:
             - mtg-lounge
         volumes:
@@ -52,32 +45,17 @@ services:
                 /bin/server
             "
 
-    ts-client:
-        image: node
+    elm-frontend:
+        build: ./../frontend
+        restart: always
         depends_on:
+            - scryfall-cache
             - pg-database
-        volumes:
-            - ./../js-client:/client
+            - mongo-database
         networks:
             - mtg-lounge
-        command: >
-            sh -c "
-                cd /client
-                npm install
-                npm run dev -- --host
-            "
-
-    nginx:
-        image: nginx
-        depends_on:
-            - j-server
-            - ts-client
         volumes:
-            - ./nginx:/etc/nginx/templates/
-        ports:
-            - "5173:5173"
-        networks:
-            - mtg-lounge
+            - ./../frontend:/usr/src
 
 networks:
     mtg-lounge:
