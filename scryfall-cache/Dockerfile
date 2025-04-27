@@ -14,7 +14,7 @@ WORKDIR /scryfall-cache
 COPY --from=compiler /usr/src/scryfall-cache/target/release /scryfall-cache
 RUN ./scryfall-cache
 
-# run the database
+# prepare the database
 FROM mongo AS deploy
 ENV MONGO_INITDB_ROOT_USERNAME=root
 ENV MONGO_INITDB_ROOT_PASSWORD=password
@@ -22,5 +22,8 @@ RUN apt-get update && apt-get upgrade -y
 WORKDIR /initial
 COPY --from=executor /initial /initial
 RUN mongod --fork --logpath /var/log/mongod.log
-RUN find . -name '*.json' -type f -exec mongoimport --db=scryfall --file='{}' \;
+RUN mongosh  --username=root --password=password --eval 'show dbs'
+RUN find . -name '*.json' -type f -exec mongoimport --username=root --password=password --db=scryfall --file='{}' \;
+
+# run the daabase
 CMD ["mongod"]
