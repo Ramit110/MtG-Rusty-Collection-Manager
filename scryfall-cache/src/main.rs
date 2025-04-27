@@ -1,6 +1,6 @@
 use reqwest::header::{ACCEPT, USER_AGENT};
 use serde::{Serialize, Deserialize};
-use std::fs::{File::create, create_dir};
+use std::fs::{File, create_dir};
 use std::io::Write;
 
 #[derive(Deserialize, Serialize)]
@@ -38,21 +38,21 @@ async fn main() {
     println!("Got data from Scryfall!");
 
     println!("Creating initial folder!");
-    create_dir("/initial").expect("Error Making Initial Folder");
+    create_dir("/initial").expect("Erustc --explain E0432rror Making Initial Folder");
     println!("Created initial folder!");
 
     println!("Getting the JSON files!");
-    let handles = vec![];
+    let mut handles = vec![];
     for dataset in scryfall_data {
         let handle = tokio::spawn(async move {
             println!("starting download of: {0}", dataset.r#type);
-            let mut output_file = create(format!("/initial/{0}.json", dataset.r#type).as_str())
+            let mut output_file = File::create(format!("/initial/{0}.json", dataset.r#type).as_str())
                 .expect(format!("Error making file for {0}!", dataset.r#type).as_str());
         
             let scryfall_data_files = reqwest::Client::new()
                 .get(&dataset.download_uri)
-                .send().await.expect(format!("Error Getting Data File for {0}", dataset.r#type))
-                .text().await.expect(format!("Error Parsing File For {0}", dataset.r#type));
+                .send().await.expect(format!("Error Getting Data File for {0}", dataset.r#type).as_str())
+                .text().await.expect(format!("Error Parsing File For {0}", dataset.r#type).as_str());
         
             output_file.write(scryfall_data_files.as_bytes())
                 .expect(format!("Error writing to file {0}!", dataset.r#type).as_str());
@@ -66,4 +66,6 @@ async fn main() {
         let _: Result<&'static str, &'static str>  = handle.await.unwrap();
     }
     println!("Got the JSON files!");
+
+    println!("Now to make it Mongo Importable!");
 }

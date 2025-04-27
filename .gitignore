@@ -4,40 +4,6 @@
 ### Database ###
 container_data/
 
-j-server/target/
-j-server/ch/
-j-server/com/
-j-server/commons-codec/
-j-server/commons-io/
-j-server/io/
-j-server/jakarta/
-j-server/javax/
-j-server/net/
-j-server/org/
-j-server/!.mvn/wrapper/maven-wrapper.jar
-j-server/!**/src/main/**/target/
-j-server/!**/src/test/**/target/
-
-### STS ###
-j-server/.apt_generated
-j-server/.classpath
-j-server/.factorypath
-j-server/.project
-j-server/.settings
-j-server/.springBeans
-j-server/.sts4-cache
-
-### IntelliJ IDEA ###
-j-server/.idea
-j-server/*.iws
-j-server/*.iml
-j-server/*.ipr
-
-### NetBeans ###
-j-server/build/
-j-server/!**/src/main/**/build/
-j-server/!**/src/test/**/build/
-
 ### Cargo things
 backend/target/
 scryfall-cache/target/

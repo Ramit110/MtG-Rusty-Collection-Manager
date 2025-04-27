@@ -3,10 +3,8 @@ FROM rust:1.84 AS compiler
 RUN apt-get update && apt-get upgrade -y
 WORKDIR /usr/src/scryfall-cache
 COPY . .
-RUN <<EOF
-    cargo install --path .
-    cargo build --release
-EOF
+RUN cargo install --path .
+RUN cargo build --release
 
 # run the rust
 FROM debian AS executor
@@ -23,5 +21,6 @@ ENV MONGO_INITDB_ROOT_PASSWORD=password
 RUN apt-get update && apt-get upgrade -y
 WORKDIR /initial
 COPY --from=executor /initial /initial
-RUN find . -name '*.json' -type f -exec mongoimport --db scryfall --file '{}' \;
+RUN mongod --fork --logpath /var/log/mongod.log
+RUN find . -name '*.json' -type f -exec mongoimport --db=scryfall --file='{}' \;
 CMD ["mongod"]
